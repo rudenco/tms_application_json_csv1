@@ -1,0 +1,183 @@
+<!-- templates/search.html -->
+{% extends "base.html" %}
+
+{% block page_title %}Search & Reports{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0"><i class="fas fa-truck"></i> Search by Truck</h5>
+            </div>
+            <div class="card-body">
+                <p>Generate comprehensive reports for specific trucks including maintenance history, OTR repairs, PM records, and costs.</p>
+                <div class="mb-3">
+                    <label for="truck_select" class="form-label">Select Truck</label>
+                    <select class="form-select" id="truck_select">
+                        <option value="">Choose a truck...</option>
+                    </select>
+                </div>
+                <button class="btn btn-primary w-100" onclick="viewTruckReport()">
+                    <i class="fas fa-chart-line"></i> Generate Truck Report
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-header bg-success text-white">
+                <h5 class="card-title mb-0"><i class="fas fa-user"></i> Search by Driver</h5>
+            </div>
+            <div class="card-body">
+                <p>View driver information, assigned vehicles, OTR incidents, and performance metrics.</p>
+                <div class="mb-3">
+                    <label for="driver_select" class="form-label">Select Driver</label>
+                    <select class="form-select" id="driver_select">
+                        <option value="">Choose a driver...</option>
+                    </select>
+                </div>
+                <button class="btn btn-success w-100" onclick="viewDriverReport()">
+                    <i class="fas fa-user-chart"></i> Generate Driver Report
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-header bg-info text-white">
+                <h5 class="card-title mb-0"><i class="fas fa-trailer"></i> Search by Trailer</h5>
+            </div>
+            <div class="card-body">
+                <p>Access trailer maintenance records, inspection history, and assignment details.</p>
+                <div class="mb-3">
+                    <label for="trailer_select" class="form-label">Select Trailer</label>
+                    <select class="form-select" id="trailer_select">
+                        <option value="">Choose a trailer...</option>
+                    </select>
+                </div>
+                <button class="btn btn-info w-100" onclick="viewTrailerReport()">
+                    <i class="fas fa-clipboard-list"></i> Generate Trailer Report
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="fas fa-search"></i> Quick Search</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="input-group mb-3">
+                            <input type="text" class="form-control" id="quick_search" placeholder="Search by truck number, VIN, driver name...">
+                            <button class="btn btn-outline-secondary" type="button" onclick="quickSearch()">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div id="search_results"></div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Load data for dropdowns
+document.addEventListener('DOMContentLoaded', function() {
+    loadTrucks();
+    loadDrivers();
+    loadTrailers();
+});
+
+function loadTrucks() {
+    fetch('/api/trucks')
+        .then(response => response.json())
+        .then(data => {
+            const select = document.getElementById('truck_select');
+            data.forEach(truck => {
+                const option = document.createElement('option');
+                option.value = truck.truck_id;
+                option.textContent = `${truck.truck_number} - ${truck.make} ${truck.model}`;
+                select.appendChild(option);
+            });
+        });
+}
+
+function loadDrivers() {
+    fetch('/api/drivers')
+        .then(response => response.json())
+        .then(data => {
+            const select = document.getElementById('driver_select');
+            data.forEach(driver => {
+                const option = document.createElement('option');
+                option.value = driver.driver_id;
+                option.textContent = `${driver.first_name} ${driver.last_name} (${driver.driver_type})`;
+                select.appendChild(option);
+            });
+        });
+}
+
+function loadTrailers() {
+    fetch('/api/trailers')
+        .then(response => response.json())
+        .then(data => {
+            const select = document.getElementById('trailer_select');
+            data.forEach(trailer => {
+                const option = document.createElement('option');
+                option.value = trailer.trailer_id;
+                option.textContent = `${trailer.trailer_number} - ${trailer.type}`;
+                select.appendChild(option);
+            });
+        });
+}
+
+function viewTruckReport() {
+    const truckId = document.getElementById('truck_select').value;
+    if (truckId) {
+        window.location.href = `/search/truck/${truckId}`;
+    } else {
+        alert('Please select a truck first.');
+    }
+}
+
+function viewDriverReport() {
+    const driverId = document.getElementById('driver_select').value;
+    if (driverId) {
+        window.location.href = `/search/driver/${driverId}`;
+    } else {
+        alert('Please select a driver first.');
+    }
+}
+
+function viewTrailerReport() {
+    const trailerId = document.getElementById('trailer_select').value;
+    if (trailerId) {
+        window.location.href = `/search/trailer/${trailerId}`;
+    } else {
+        alert('Please select a trailer first.');
+    }
+}
+
+function quickSearch() {
+    const query = document.getElementById('quick_search').value;
+    if (!query) {
+        alert('Please enter a search term.');
+        return;
+    }
+
+    // Implement quick search functionality
+    const resultsDiv = document.getElementById('search_results');
+    resultsDiv.innerHTML = '<div class="alert alert-info">Quick search functionality coming soon...</div>';
+}
+</script>
+{% endblock %}

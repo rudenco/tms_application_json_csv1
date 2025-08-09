@@ -1,0 +1,4 @@
+maintenance_id,truck_id,trailer_id,maintenance_type,date,mileage,description,parts_cost,labor_cost,total_cost,shop_name,shop_location,technician,status,notes,created_at
+m001,t001,,Routine Maintenance,2024-12-15,185000,"Oil change, filter replacement, DOT inspection",245.50,150.00,395.50,Company Maintenance Shop,"Dallas, TX",Mike Stevens,Completed,All systems check OK,2024-12-15T08:00:00Z
+m002,t002,,Brake Service,2024-11-28,124500,"Front brake pad replacement, brake adjustment",320.75,200.00,520.75,Pete's Truck Service,"Houston, TX",Pete Williams,Completed,Brake performance restored to spec,2024-11-28T08:00:00Z
+m003,,tr002,Inspection,2024-10-20,0,"Annual DOT trailer inspection, reefer service",85.00,125.00,210.00,Cold Chain Services,"Austin, TX",Tom Garcia,Completed,"Reefer unit serviced, all lights functional",2024-10-20T08:00:00Z

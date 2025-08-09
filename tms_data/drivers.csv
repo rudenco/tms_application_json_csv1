@@ -1,0 +1,6 @@
+driver_id,first_name,last_name,license_number,driver_type,hire_date,phone,email,address,cdl_expiry,medical_expiry,status,notes,created_at
+d001,John,Martinez,CDL123456,CD,2022-03-15,555-0101,j.martinez@company.com,"1234 Main St, Dallas, TX 75201",2026-03-15,2025-09-15,Active,"Experienced long-haul driver, excellent safety record",2022-03-15T08:00:00Z
+d002,Sarah,Johnson,CDL234567,LP,2021-08-20,555-0102,s.johnson@company.com,"5678 Oak Ave, Houston, TX 77001",2025-08-20,2025-12-20,Active,"Lease purchase driver, transitioning to owner-operator",2021-08-20T08:00:00Z
+d003,Michael,Thompson,CDL345678,LP Owner,2020-01-10,555-0103,m.thompson@company.com,"9012 Pine St, Austin, TX 78701",2026-01-10,2025-07-10,Active,"Owner-operator, specializes in refrigerated freight",2020-01-10T08:00:00Z
+d004,Lisa,Rodriguez,CDL456789,CD,2023-05-12,555-0104,l.rodriguez@company.com,"3456 Elm Dr, San Antonio, TX 78201",2027-05-12,2025-11-12,Active,"New driver, completed training program",2023-05-12T08:00:00Z
+d005,Robert,Wilson,CDL567890,CD,2019-11-03,555-0105,r.wilson@company.com,"7890 Cedar Ln, Fort Worth, TX 76101",2025-11-03,2025-05-03,Active,"Senior driver, trainer for new hires",2019-11-03T08:00:00Z

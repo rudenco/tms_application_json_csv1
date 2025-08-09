@@ -1,0 +1,6 @@
+truck_id,truck_number,make,model,year,vin,engine_type,mileage,assigned_driver,status,purchase_date,last_pm_date,next_pm_due,notes,created_at
+t001,T8001,Freightliner,Cascadia,2022,1FUJGLDR2NLBC1234,DD15,185000,John Martinez,Active,2022-03-01,2024-12-15,2025-03-15,"High mileage unit, well maintained",2022-03-01T08:00:00Z
+t002,T8002,Peterbilt,579,2023,1XPBDP9X5ND123456,PACCAR MX-13,125000,Sarah Johnson,Active,2023-01-15,2024-11-20,2025-02-20,Lease purchase unit,2023-01-15T08:00:00Z
+t003,T8003,Kenworth,T680,2021,1XKYDP9X0LJ123456,PACCAR MX-11,275000,Michael Thompson,Active,2021-06-10,2024-10-05,2025-01-05,"Owner-operator unit, excellent condition",2021-06-10T08:00:00Z
+t004,T8004,Volvo,VNL 760,2024,4V4NC9EH1RN123456,D13,45000,Lisa Rodriguez,Active,2024-02-20,2024-12-01,2025-03-01,"New unit, under warranty",2024-02-20T08:00:00Z
+t005,T8005,Freightliner,Cascadia,2020,1FUJGLDR6LLBC5678,DD13,325000,Robert Wilson,Maintenance,2020-09-15,2024-09-10,2024-12-10,In shop for major engine service,2020-09-15T08:00:00Z

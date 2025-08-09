@@ -1,0 +1,6 @@
+trailer_id,trailer_number,type,year,make,capacity,assigned_truck,status,last_inspection,next_inspection_due,notes,created_at
+tr001,TR5001,Dry Van,2022,Great Dane,"53' - 110,000 lbs",T8001,Assigned,2024-11-15,2025-05-15,"Standard dry van, good condition",2022-04-01T08:00:00Z
+tr002,TR5002,Refrigerated,2023,Utility,"53' - 105,000 lbs",T8003,Assigned,2024-10-20,2025-04-20,"Thermo King reefer unit, temperature controlled",2023-02-15T08:00:00Z
+tr003,TR5003,Flatbed,2021,Fontaine,"48' - 80,000 lbs",,Available,2024-12-01,2025-06-01,Steel flatbed with removable sides,2021-07-20T08:00:00Z
+tr004,TR5004,Dry Van,2024,Wabash,"53' - 110,000 lbs",T8004,Assigned,2024-12-10,2025-06-10,"New trailer, aerodynamic design",2024-03-01T08:00:00Z
+tr005,TR5005,Dry Van,2020,Great Dane,"53' - 110,000 lbs",,Maintenance,2024-08-15,2025-02-15,In for brake service and door repairs,2020-05-10T08:00:00Z

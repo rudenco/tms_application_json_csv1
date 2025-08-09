@@ -1,0 +1,116 @@
+<!-- templates/add_trailer.html -->
+{% extends "base.html" %}
+
+{% block page_title %}Add Trailer{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="fas fa-trailer"></i> Add New Trailer</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="trailer_number" class="form-label">Trailer Number *</label>
+                                <input type="text" class="form-control" id="trailer_number" name="trailer_number" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="type" class="form-label">Type *</label>
+                                <select class="form-select" id="type" name="type" required>
+                                    <option value="">Select Type</option>
+                                    <option value="Dry Van">Dry Van</option>
+                                    <option value="Refrigerated">Refrigerated</option>
+                                    <option value="Flatbed">Flatbed</option>
+                                    <option value="Tanker">Tanker</option>
+                                    <option value="Container">Container</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="make" class="form-label">Make *</label>
+                                <input type="text" class="form-control" id="make" name="make" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="year" class="form-label">Year *</label>
+                                <input type="number" class="form-control" id="year" name="year" min="1990" max="2030" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="capacity" class="form-label">Capacity (lbs/cu ft)</label>
+                                <input type="text" class="form-control" id="capacity" name="capacity">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="assigned_truck" class="form-label">Assigned Truck</label>
+                                <select class="form-select" id="assigned_truck" name="assigned_truck">
+                                    <option value="">Select Truck</option>
+                                    {% for truck in trucks %}
+                                    <option value="{{ truck.truck_number }}">
+                                        {{ truck.truck_number }} - {{ truck.make }} {{ truck.model }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="status" class="form-label">Status *</label>
+                                <select class="form-select" id="status" name="status" required>
+                                    <option value="">Select Status</option>
+                                    <option value="Available">Available</option>
+                                    <option value="Assigned">Assigned</option>
+                                    <option value="Maintenance">Maintenance</option>
+                                    <option value="Sold">Sold</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="last_inspection" class="form-label">Last Inspection</label>
+                                <input type="date" class="form-control" id="last_inspection" name="last_inspection">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="next_inspection_due" class="form-label">Next Inspection Due</label>
+                        <input type="date" class="form-control" id="next_inspection_due" name="next_inspection_due">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="notes" class="form-label">Notes</label>
+                        <textarea class="form-control" id="notes" name="notes" rows="3"></textarea>
+                    </div>
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{{ url_for('trailers') }}" class="btn btn-secondary me-md-2">Cancel</a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Save Trailer
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

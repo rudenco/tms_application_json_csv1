@@ -1,0 +1,508 @@
+<!-- templates/import_data.html -->
+{% extends "base.html" %}
+
+{% block page_title %}Import Data{% endblock %}
+
+{% block page_actions %}
+<a href="{{ url_for('export_data') }}" class="btn btn-success">
+    <i class="fas fa-download"></i> Export Current Data
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <!-- Import Instructions Card -->
+        <div class="card mb-4">
+            <div class="card-header bg-info text-white">
+                <h5 class="card-title mb-0"><i class="fas fa-info-circle"></i> Import Instructions</h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-warning" role="alert">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Warning:</strong> Importing data will replace all existing data in the system. Make sure to export your current data first if you want to keep it.
+                </div>
+
+                <h6><i class="fas fa-file-alt"></i> Supported File Format</h6>
+                <ul class="mb-3">
+                    <li><strong>JSON files (.json)</strong> - TMS backup files created by the export function</li>
+                </ul>
+
+                <h6><i class="fas fa-list-check"></i> Import Process</h6>
+                <ol class="mb-3">
+                    <li>Select a valid TMS backup file (JSON format)</li>
+                    <li>Click "Preview Import" to see what data will be imported</li>
+                    <li>Review the preview and click "Import Data" to proceed</li>
+                    <li>The system will validate and import all data</li>
+                </ol>
+
+                <h6><i class="fas fa-database"></i> Data Types Imported</h6>
+                <div class="row">
+                    <div class="col-md-6">
+                        <ul class="list-unstyled">
+                            <li><i class="fas fa-users text-primary"></i> Drivers</li>
+                            <li><i class="fas fa-truck text-success"></i> Trucks</li>
+                            <li><i class="fas fa-trailer text-info"></i> Trailers</li>
+                            <li><i class="fas fa-tools text-warning"></i> OTR Repairs</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <ul class="list-unstyled">
+                            <li><i class="fas fa-calendar-check text-primary"></i> PM Records</li>
+                            <li><i class="fas fa-wrench text-success"></i> Shop Jobs</li>
+                            <li><i class="fas fa-clipboard-list text-info"></i> Maintenance Records</li>
+                            <li><i class="fas fa-clock text-muted"></i> Timestamps</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Import Form Card -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="fas fa-upload"></i> Import TMS Data</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" enctype="multipart/form-data" id="importForm">
+                    <div class="mb-4">
+                        <label for="file" class="form-label">Select TMS Backup File *</label>
+                        <input type="file" class="form-control" id="file" name="file" accept=".json" required>
+                        <div class="form-text">Only JSON files exported from TMS are supported.</div>
+                    </div>
+
+                    <!-- File Information Display -->
+                    <div id="fileInfo" class="card bg-light mb-4" style="display: none;">
+                        <div class="card-body">
+                            <h6><i class="fas fa-file-alt"></i> File Information</h6>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p class="mb-1"><strong>File Name:</strong> <span id="fileName"></span></p>
+                                    <p class="mb-1"><strong>File Size:</strong> <span id="fileSize"></span></p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p class="mb-1"><strong>Last Modified:</strong> <span id="fileModified"></span></p>
+                                    <p class="mb-1"><strong>Status:</strong> <span id="fileStatus" class="badge"></span></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Preview Section -->
+                    <div id="previewSection" class="mb-4" style="display: none;">
+                        <div class="card">
+                            <div class="card-header bg-light">
+                                <h6 class="card-title mb-0"><i class="fas fa-eye"></i> Import Preview</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row text-center" id="previewStats">
+                                    <!-- Preview statistics will be populated by JavaScript -->
+                                </div>
+
+                                <div class="mt-3">
+                                    <h6>Export Information</h6>
+                                    <p class="mb-1"><strong>Export Date:</strong> <span id="exportDate"></span></p>
+                                    <p class="mb-1"><strong>Data Version:</strong> <span id="dataVersion">TMS v1.0</span></p>
+                                </div>
+
+                                <div class="alert alert-info mt-3" role="alert">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    Review the data counts above. Click "Import Data" to replace all current data with this backup.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-between">
+                        <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Back to Dashboard
+                        </a>
+                        <div>
+                            <button type="button" class="btn btn-info me-2" id="previewBtn" onclick="previewImport()" disabled>
+                                <i class="fas fa-eye"></i> Preview Import
+                            </button>
+                            <button type="submit" class="btn btn-primary" id="importBtn" disabled>
+                                <i class="fas fa-upload"></i> Import Data
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Backup Recommendations Card -->
+        <div class="card mt-4">
+            <div class="card-header bg-success text-white">
+                <h5 class="card-title mb-0"><i class="fas fa-shield-alt"></i> Backup Recommendations</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-calendar-alt"></i> Regular Backups</h6>
+                        <ul class="mb-3">
+                            <li>Export data weekly or before major changes</li>
+                            <li>Store backups in multiple locations</li>
+                            <li>Test restore process periodically</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-check-circle"></i> Best Practices</h6>
+                        <ul class="mb-3">
+                            <li>Always export before importing</li>
+                            <li>Verify data integrity after import</li>
+                            <li>Keep backup files organized by date</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="alert alert-success" role="alert">
+                    <i class="fas fa-lightbulb me-2"></i>
+                    <strong>Tip:</strong> Use descriptive filenames like "tms_backup_2024_01_15_beforeupgrade.json" to easily identify your backups.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Import Progress Modal -->
+<div class="modal fade" id="importProgressModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-upload"></i> Importing Data</h5>
+            </div>
+            <div class="modal-body text-center">
+                <div class="mb-3">
+                    <i class="fas fa-spinner fa-spin fa-3x text-primary"></i>
+                </div>
+                <h5>Please wait while we import your data...</h5>
+                <p class="text-muted">This may take a few moments depending on the file size.</p>
+
+                <div class="progress mb-3">
+                    <div class="progress-bar progress-bar-striped progress-bar-animated"
+                         role="progressbar" style="width: 100%"></div>
+                </div>
+
+                <div class="alert alert-warning" role="alert">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Do not close this window</strong> until the import is complete.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Import Success Modal -->
+<div class="modal fade" id="importSuccessModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title"><i class="fas fa-check-circle"></i> Import Successful</h5>
+            </div>
+            <div class="modal-body text-center">
+                <div class="mb-3">
+                    <i class="fas fa-check-circle fa-3x text-success"></i>
+                </div>
+                <h5>Data imported successfully!</h5>
+                <p class="text-muted">Your TMS data has been restored from the backup file.</p>
+
+                <div id="importSummary" class="alert alert-info">
+                    <!-- Import summary will be populated by JavaScript -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <a href="{{ url_for('dashboard') }}" class="btn btn-primary">
+                    <i class="fas fa-tachometer-alt"></i> Go to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.card {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    border: 1px solid rgba(0, 0, 0, 0.125);
+}
+
+.card-header {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+}
+
+.file-drop-zone {
+    border: 2px dashed #dee2e6;
+    border-radius: 0.5rem;
+    padding: 2rem;
+    text-align: center;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.file-drop-zone:hover {
+    border-color: #007bff;
+    background-color: #f8f9fa;
+}
+
+.file-drop-zone.dragover {
+    border-color: #28a745;
+    background-color: #d4edda;
+}
+
+.preview-stat {
+    padding: 1rem;
+    border: 1px solid #dee2e6;
+    border-radius: 0.25rem;
+    margin-bottom: 0.5rem;
+}
+
+.progress {
+    height: 8px;
+}
+
+.alert {
+    border-left: 4px solid;
+}
+
+.alert-warning {
+    border-left-color: #ffc107;
+}
+
+.alert-info {
+    border-left-color: #17a2b8;
+}
+
+.alert-success {
+    border-left-color: #28a745;
+}
+
+.spinner-border-sm {
+    width: 1rem;
+    height: 1rem;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let selectedFile = null;
+let fileData = null;
+
+document.addEventListener('DOMContentLoaded', function() {
+    const fileInput = document.getElementById('file');
+    const previewBtn = document.getElementById('previewBtn');
+    const importBtn = document.getElementById('importBtn');
+    const importForm = document.getElementById('importForm');
+
+    // File input change event
+    fileInput.addEventListener('change', function(e) {
+        selectedFile = e.target.files[0];
+        if (selectedFile) {
+            displayFileInfo(selectedFile);
+            previewBtn.disabled = false;
+        } else {
+            hideFileInfo();
+            previewBtn.disabled = true;
+            importBtn.disabled = true;
+        }
+    });
+
+    // Form submit event
+    importForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        if (!selectedFile) {
+            alert('Please select a file first.');
+            return;
+        }
+
+        const confirmed = confirm(
+            'Are you sure you want to import this data?\n\n' +
+            'This will replace ALL existing data in the system.\n' +
+            'Make sure you have exported your current data first.'
+        );
+
+        if (confirmed) {
+            showImportProgress();
+
+            // Submit the form
+            setTimeout(() => {
+                importForm.submit();
+            }, 1000);
+        }
+    });
+});
+
+function displayFileInfo(file) {
+    document.getElementById('fileName').textContent = file.name;
+    document.getElementById('fileSize').textContent = formatFileSize(file.size);
+    document.getElementById('fileModified').textContent = new Date(file.lastModified).toLocaleString();
+
+    // Validate file type
+    if (file.type === 'application/json' || file.name.endsWith('.json')) {
+        document.getElementById('fileStatus').textContent = 'Valid';
+        document.getElementById('fileStatus').className = 'badge bg-success';
+    } else {
+        document.getElementById('fileStatus').textContent = 'Invalid';
+        document.getElementById('fileStatus').className = 'badge bg-danger';
+        document.getElementById('previewBtn').disabled = true;
+    }
+
+    document.getElementById('fileInfo').style.display = 'block';
+}
+
+function hideFileInfo() {
+    document.getElementById('fileInfo').style.display = 'none';
+    document.getElementById('previewSection').style.display = 'none';
+}
+
+function formatFileSize(bytes) {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
+
+function previewImport() {
+    if (!selectedFile) {
+        alert('Please select a file first.');
+        return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            fileData = JSON.parse(e.target.result);
+            displayPreview(fileData);
+        } catch (error) {
+            alert('Error reading file: Invalid JSON format');
+            console.error('JSON parse error:', error);
+        }
+    };
+    reader.readAsText(selectedFile);
+}
+
+function displayPreview(data) {
+    const previewStats = document.getElementById('previewStats');
+    const exportDate = document.getElementById('exportDate');
+
+    // Clear previous content
+    previewStats.innerHTML = '';
+
+    // Data categories and their display names
+    const categories = {
+        'drivers': { name: 'Drivers', icon: 'fas fa-users', color: 'primary' },
+        'trucks': { name: 'Trucks', icon: 'fas fa-truck', color: 'success' },
+        'trailers': { name: 'Trailers', icon: 'fas fa-trailer', color: 'info' },
+        'maintenance': { name: 'Maintenance', icon: 'fas fa-tools', color: 'warning' },
+        'otr_repairs': { name: 'OTR Repairs', icon: 'fas fa-exclamation-triangle', color: 'danger' },
+        'pm_records': { name: 'PM Records', icon: 'fas fa-calendar-check', color: 'primary' },
+        'shop_jobs': { name: 'Shop Jobs', icon: 'fas fa-wrench', color: 'secondary' }
+    };
+
+    // Create preview cards for each category
+    Object.keys(categories).forEach(key => {
+        if (data[key]) {
+            const count = Array.isArray(data[key]) ? data[key].length : 0;
+            const category = categories[key];
+
+            const col = document.createElement('div');
+            col.className = 'col-md-4 col-sm-6 mb-3';
+            col.innerHTML = `
+                <div class="preview-stat">
+                    <i class="${category.icon} fa-2x text-${category.color} mb-2"></i>
+                    <h5 class="mb-1">${count}</h5>
+                    <small class="text-muted">${category.name}</small>
+                </div>
+            `;
+            previewStats.appendChild(col);
+        }
+    });
+
+    // Display export date
+    if (data.export_date) {
+        exportDate.textContent = new Date(data.export_date).toLocaleString();
+    } else {
+        exportDate.textContent = 'Unknown';
+    }
+
+    // Show preview section and enable import button
+    document.getElementById('previewSection').style.display = 'block';
+    document.getElementById('importBtn').disabled = false;
+}
+
+function showImportProgress() {
+    const modal = new bootstrap.Modal(document.getElementById('importProgressModal'));
+    modal.show();
+}
+
+function showImportSuccess(summary) {
+    // Hide progress modal
+    const progressModal = bootstrap.Modal.getInstance(document.getElementById('importProgressModal'));
+    if (progressModal) {
+        progressModal.hide();
+    }
+
+    // Show success modal
+    setTimeout(() => {
+        const successModal = new bootstrap.Modal(document.getElementById('importSuccessModal'));
+
+        // Populate summary
+        if (summary) {
+            document.getElementById('importSummary').innerHTML = summary;
+        }
+
+        successModal.show();
+    }, 500);
+}
+
+// Handle drag and drop (optional enhancement)
+function setupDragAndDrop() {
+    const fileInput = document.getElementById('file');
+    const dropZone = document.querySelector('.card-body');
+
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, preventDefaults, false);
+    });
+
+    ['dragenter', 'dragover'].forEach(eventName => {
+        dropZone.addEventListener(eventName, highlight, false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, unhighlight, false);
+    });
+
+    dropZone.addEventListener('drop', handleDrop, false);
+
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+
+    function highlight(e) {
+        dropZone.classList.add('dragover');
+    }
+
+    function unhighlight(e) {
+        dropZone.classList.remove('dragover');
+    }
+
+    function handleDrop(e) {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+
+        if (files.length > 0) {
+            fileInput.files = files;
+            fileInput.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+    }
+}
+
+// Initialize drag and drop when page loads
+// setupDragAndDrop();
+</script>
+{% endblock %}

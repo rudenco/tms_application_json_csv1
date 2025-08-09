@@ -1,0 +1,167 @@
+<!-- templates/dashboard.html -->
+{% extends "base.html" %}
+
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card card-metric h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-uppercase mb-1">Total Drivers</div>
+                        <div class="h5 mb-0 font-weight-bold">{{ stats.total_drivers }}</div>
+                        <small>CD Drivers: {{ stats.cd_drivers }}</small>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-users fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card card-metric-success h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-uppercase mb-1">Total Trucks</div>
+                        <div class="h5 mb-0 font-weight-bold">{{ stats.total_trucks }}</div>
+                        <small>Active: {{ stats.active_trucks }}</small>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-truck fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card card-metric-info h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-uppercase mb-1">Total Trailers</div>
+                        <div class="h5 mb-0 font-weight-bold">{{ stats.total_trailers }}</div>
+                        <small>Available: {{ stats.available_trailers }}</small>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-trailer fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card card-metric-warning h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-uppercase mb-1">Open OTR Cases</div>
+                        <div class="h5 mb-0 font-weight-bold">{{ stats.open_otr }}</div>
+                        <small>Needs attention</small>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-exclamation-triangle fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="fas fa-chart-bar"></i> Maintenance Overview</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-6">
+                        <h6>Total Records</h6>
+                        <p class="h4 text-primary">{{ stats.total_maintenance }}</p>
+                    </div>
+                    <div class="col-6">
+                        <h6>PM Records</h6>
+                        <p class="h4 text-success">{{ stats.total_pm }}</p>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-6">
+                        <h6>Shop Jobs</h6>
+                        <p class="h4 text-info">{{ stats.shop_jobs }}</p>
+                    </div>
+                    <div class="col-6">
+                        <h6>OTR Cases</h6>
+                        <p class="h4 text-warning">{{ stats.open_otr }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="fas fa-dollar-sign"></i> Cost Overview</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-6">
+                        <h6>Maintenance Cost</h6>
+                        <p class="h4 text-primary">${{ "%.2f"|format(stats.total_maintenance_cost) }}</p>
+                    </div>
+                    <div class="col-6">
+                        <h6>OTR Cost</h6>
+                        <p class="h4 text-danger">${{ "%.2f"|format(stats.total_otr_cost) }}</p>
+                    </div>
+                </div>
+                <hr>
+                <div class="text-center">
+                    <h6>Total Cost</h6>
+                    <p class="h3 text-dark">${{ "%.2f"|format(stats.total_maintenance_cost + stats.total_otr_cost) }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="fas fa-list"></i> Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3 mb-2">
+                        <a href="{{ url_for('add_driver') }}" class="btn btn-primary w-100">
+                            <i class="fas fa-user-plus"></i> Add Driver
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <a href="{{ url_for('add_truck') }}" class="btn btn-success w-100">
+                            <i class="fas fa-truck"></i> Add Truck
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <a href="{{ url_for('add_otr') }}" class="btn btn-warning w-100">
+                            <i class="fas fa-tools"></i> Add OTR Repair
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <a href="{{ url_for('add_pm') }}" class="btn btn-info w-100">
+                            <i class="fas fa-calendar-plus"></i> Add PM Record
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

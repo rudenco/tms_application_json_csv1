@@ -1,0 +1,264 @@
+<!-- templates/truck_report.html -->
+{% extends "base.html" %}
+
+{% block page_title %}Truck Report - {{ truck.truck_number }}{% endblock %}
+
+{% block page_actions %}
+<a href="{{ url_for('search') }}" class="btn btn-secondary">
+    <i class="fas fa-arrow-left"></i> Back to Search
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0"><i class="fas fa-truck"></i> Truck Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <strong>Truck Number:</strong><br>
+                        <span class="h5">{{ truck.truck_number }}</span>
+                    </div>
+                    <div class="col-md-3">
+                        <strong>Make/Model:</strong><br>
+                        {{ truck.make }} {{ truck.model }}
+                    </div>
+                    <div class="col-md-3">
+                        <strong>Year:</strong><br>
+                        {{ truck.year }}
+                    </div>
+                    <div class="col-md-3">
+                        <strong>Status:</strong><br>
+                        <span class="badge bg-{{ 'success' if truck.status == 'Active' else 'warning' }}">{{ truck.status }}</span>
+                    </div>
+                </div>
+                <hr>
+                <div class="row">
+                    <div class="col-md-4">
+                        <strong>VIN:</strong><br>
+                        {{ truck.vin }}
+                    </div>
+                    <div class="col-md-4">
+                        <strong>Current Mileage:</strong><br>
+                        {{ "{:,}".format(truck.mileage|int) }}
+                    </div>
+                    <div class="col-md-4">
+                        <strong>Assigned Driver:</strong><br>
+                        {{ truck.assigned_driver or 'Unassigned' }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card card-metric">
+            <div class="card-body text-center">
+                <h5>Maintenance Cost</h5>
+                <h3>${{ "%.2f"|format(totals.maintenance) }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card card-metric-warning">
+            <div class="card-body text-center">
+                <h5>OTR Cost</h5>
+                <h3>${{ "%.2f"|format(totals.otr) }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card card-metric-success">
+            <div class="card-body text-center">
+                <h5>PM Cost</h5>
+                <h3>${{ "%.2f"|format(totals.pm) }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card card-metric-info">
+            <div class="card-body text-center">
+                <h5>Total Cost</h5>
+                <h3>${{ "%.2f"|format(totals.grand_total) }}</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <ul class="nav nav-tabs card-header-tabs" id="reportTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="maintenance-tab" data-bs-toggle="tab" data-bs-target="#maintenance" type="button">
+                            Maintenance ({{ maintenance|length }})
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="otr-tab" data-bs-toggle="tab" data-bs-target="#otr" type="button">
+                            OTR Repairs ({{ otr_repairs|length }})
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="pm-tab" data-bs-toggle="tab" data-bs-target="#pm" type="button">
+                            PM Records ({{ pm_records|length }})
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="shop-tab" data-bs-toggle="tab" data-bs-target="#shop" type="button">
+                            Shop Jobs ({{ shop_jobs|length }})
+                        </button>
+                    </li>
+                </ul>
+            </div>
+            <div class="card-body">
+                <div class="tab-content" id="reportTabsContent">
+                    <div class="tab-pane fade show active" id="maintenance" role="tabpanel">
+                        {% if maintenance %}
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Type</th>
+                                        <th>Description</th>
+                                        <th>Shop</th>
+                                        <th>Cost</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for record in maintenance %}
+                                    <tr>
+                                        <td>{{ record.date }}</td>
+                                        <td>{{ record.maintenance_type }}</td>
+                                        <td>{{ record.description }}</td>
+                                        <td>{{ record.shop_name }}</td>
+                                        <td>${{ "%.2f"|format(record.total_cost) }}</td>
+                                        <td><span class="badge bg-{{ 'success' if record.status == 'Completed' else 'warning' }}">{{ record.status }}</span></td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% else %}
+                        <p class="text-muted text-center">No maintenance records found.</p>
+                        {% endif %}
+                    </div>
+
+                    <div class="tab-pane fade" id="otr" role="tabpanel">
+                        {% if otr_repairs %}
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Location</th>
+                                        <th>Issue</th>
+                                        <th>Repair Shop</th>
+                                        <th>Downtime</th>
+                                        <th>Total Cost</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for record in otr_repairs %}
+                                    <tr>
+                                        <td>{{ record.breakdown_date }}</td>
+                                        <td>{{ record.location }}</td>
+                                        <td>{{ record.issue_description[:50] }}...</td>
+                                        <td>{{ record.repair_shop }}</td>
+                                        <td>{{ record.downtime_hours }}h</td>
+                                        <td>${{ "%.2f"|format(record.total_cost) }}</td>
+                                        <td><span class="badge bg-{{ 'success' if record.status == 'Completed' else 'warning' }}">{{ record.status }}</span></td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% else %}
+                        <p class="text-muted text-center">No OTR repair records found.</p>
+                        {% endif %}
+                    </div>
+
+                    <div class="tab-pane fade" id="pm" role="tabpanel">
+                        {% if pm_records %}
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>PM Type</th>
+                                        <th>Mileage</th>
+                                        <th>Shop</th>
+                                        <th>Next Due</th>
+                                        <th>Cost</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for record in pm_records %}
+                                    <tr>
+                                        <td>{{ record.date }}</td>
+                                        <td>{{ record.pm_type }}</td>
+                                        <td>{{ "{:,}".format(record.mileage|int) }}</td>
+                                        <td>{{ record.shop_name }}</td>
+                                        <td>{{ record.next_due_date }}</td>
+                                        <td>${{ "%.2f"|format(record.total_cost) }}</td>
+                                        <td><span class="badge bg-{{ 'success' if record.status == 'Completed' else 'warning' }}">{{ record.status }}</span></td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% else %}
+                        <p class="text-muted text-center">No PM records found.</p>
+                        {% endif %}
+                    </div>
+
+                    <div class="tab-pane fade" id="shop" role="tabpanel">
+                        {% if shop_jobs %}
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Date Started</th>
+                                        <th>Job Type</th>
+                                        <th>Description</th>
+                                        <th>Technician</th>
+                                        <th>Labor Hours</th>
+                                        <th>Cost</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for record in shop_jobs %}
+                                    <tr>
+                                        <td>{{ record.date_started }}</td>
+                                        <td>{{ record.job_type }}</td>
+                                        <td>{{ record.description[:50] }}...</td>
+                                        <td>{{ record.technician }}</td>
+                                        <td>{{ record.labor_hours }}h</td>
+                                        <td>${{ "%.2f"|format(record.total_cost) }}</td>
+                                        <td><span class="badge bg-{{ 'success' if record.status == 'Completed' else 'warning' }}">{{ record.status }}</span></td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% else %}
+                        <p class="text-muted text-center">No shop job records found.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

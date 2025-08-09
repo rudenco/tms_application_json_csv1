@@ -1,0 +1,152 @@
+<!-- templates/add_pm.html -->
+{% extends "base.html" %}
+
+{% block page_title %}Add PM Record{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="fas fa-calendar-check"></i> Add New PM Record</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="truck_id" class="form-label">Truck *</label>
+                                <select class="form-select" id="truck_id" name="truck_id" required>
+                                    <option value="">Select Truck</option>
+                                    {% for truck in trucks %}
+                                    <option value="{{ truck.truck_id }}">{{ truck.truck_number }} - {{ truck.make }} {{ truck.model }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="pm_type" class="form-label">PM Type *</label>
+                                <select class="form-select" id="pm_type" name="pm_type" required>
+                                    <option value="">Select PM Type</option>
+                                    <option value="A Service">A Service</option>
+                                    <option value="B Service">B Service</option>
+                                    <option value="C Service">C Service</option>
+                                    <option value="Annual DOT">Annual DOT</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="date" class="form-label">PM Date *</label>
+                                <input type="date" class="form-control" id="date" name="date" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="mileage" class="form-label">Mileage</label>
+                                <input type="number" class="form-control" id="mileage" name="mileage" min="0">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="next_due_date" class="form-label">Next Due Date</label>
+                                <input type="date" class="form-control" id="next_due_date" name="next_due_date">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="next_due_mileage" class="form-label">Next Due Mileage</label>
+                                <input type="number" class="form-control" id="next_due_mileage" name="next_due_mileage" min="0">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="shop_name" class="form-label">Shop Name *</label>
+                                <input type="text" class="form-control" id="shop_name" name="shop_name" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="technician" class="form-label">Technician</label>
+                                <input type="text" class="form-control" id="technician" name="technician">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <div class="form-check">
+                                    <input type="checkbox" class="form-check-input" id="oil_change" name="oil_change">
+                                    <label class="form-check-label" for="oil_change">Oil Change</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <div class="form-check">
+                                    <input type="checkbox" class="form-check-input" id="filter_change" name="filter_change">
+                                    <label class="form-check-label" for="filter_change">Filter Change</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="inspection_items" class="form-label">Inspection Items</label>
+                        <textarea class="form-control" id="inspection_items" name="inspection_items" rows="3"></textarea>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="parts_cost" class="form-label">Parts Cost ($)</label>
+                                <input type="number" class="form-control" id="parts_cost" name="parts_cost" step="0.01" min="0">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="labor_cost" class="form-label">Labor Cost ($)</label>
+                                <input type="number" class="form-control" id="labor_cost" name="labor_cost" step="0.01" min="0">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="status" class="form-label">Status *</label>
+                                <select class="form-select" id="status" name="status" required>
+                                    <option value="">Select Status</option>
+                                    <option value="Scheduled">Scheduled</option>
+                                    <option value="In Progress">In Progress</option>
+                                    <option value="Completed">Completed</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="notes" class="form-label">Notes</label>
+                        <textarea class="form-control" id="notes" name="notes" rows="3"></textarea>
+                    </div>
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{{ url_for('pm_records') }}" class="btn btn-secondary me-md-2">Cancel</a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Save PM Record
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

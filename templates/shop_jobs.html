@@ -1,0 +1,564 @@
+<!-- templates/shop_jobs.html -->
+{% extends "base.html" %}
+
+{% block page_title %}Shop Jobs Management{% endblock %}
+
+{% block page_actions %}
+<a href="{{ url_for('add_shop_job') }}" class="btn btn-primary">
+    <i class="fas fa-plus"></i> Add Shop Job
+</a>
+{% endblock %}
+
+{% block content %}
+<!-- Summary Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card card-metric-info">
+            <div class="card-body text-center">
+                <i class="fas fa-clipboard-list fa-2x mb-2"></i>
+                <h5 class="mb-1">{{ shop_jobs|length }}</h5>
+                <small>Total Jobs</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card card-metric-warning">
+            <div class="card-body text-center">
+                <i class="fas fa-clock fa-2x mb-2"></i>
+                <h5 class="mb-1">{{ shop_jobs|selectattr("status", "equalto", "In Progress")|list|length }}</h5>
+                <small>In Progress</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card card-metric-success">
+            <div class="card-body text-center">
+                <i class="fas fa-check-circle fa-2x mb-2"></i>
+                <h5 class="mb-1">{{ shop_jobs|selectattr("status", "equalto", "Completed")|list|length }}</h5>
+                <small>Completed</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card card-metric">
+            <div class="card-body text-center">
+                <i class="fas fa-exclamation fa-2x mb-2"></i>
+                <h5 class="mb-1">{{ shop_jobs|selectattr("priority", "equalto", "Critical")|list|length }}</h5>
+                <small>Critical Priority</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filter and Search -->
+<div class="card mb-4">
+    <div class="card-body">
+        <div class="row g-3">
+            <div class="col-md-3">
+                <label for="statusFilter" class="form-label">Filter by Status</label>
+                <select class="form-select" id="statusFilter" onchange="filterJobs()">
+                    <option value="">All Statuses</option>
+                    <option value="Scheduled">Scheduled</option>
+                    <option value="In Progress">In Progress</option>
+                    <option value="Completed">Completed</option>
+                    <option value="On Hold">On Hold</option>
+                    <option value="Cancelled">Cancelled</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="priorityFilter" class="form-label">Filter by Priority</label>
+                <select class="form-select" id="priorityFilter" onchange="filterJobs()">
+                    <option value="">All Priorities</option>
+                    <option value="Low">Low</option>
+                    <option value="Medium">Medium</option>
+                    <option value="High">High</option>
+                    <option value="Critical">Critical</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="jobTypeFilter" class="form-label">Filter by Job Type</label>
+                <select class="form-select" id="jobTypeFilter" onchange="filterJobs()">
+                    <option value="">All Job Types</option>
+                    <option value="Routine Service">Routine Service</option>
+                    <option value="Repair">Repair</option>
+                    <option value="Inspection">Inspection</option>
+                    <option value="Modification">Modification</option>
+                    <option value="Tire Work">Tire Work</option>
+                    <option value="Brake Work">Brake Work</option>
+                    <option value="Engine Work">Engine Work</option>
+                    <option value="Body Work">Body Work</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="searchInput" class="form-label">Search</label>
+                <input type="text" class="form-control" id="searchInput" placeholder="Search jobs..." onkeyup="filterJobs()">
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Shop Jobs Table -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0"><i class="fas fa-wrench"></i> All Shop Jobs</h5>
+    </div>
+    <div class="card-body">
+        {% if shop_jobs %}
+        <div class="table-responsive">
+            <table class="table table-striped table-hover" id="shopJobsTable">
+                <thead class="table-dark">
+                    <tr>
+                        <th>
+                            <input type="checkbox" id="selectAll" onchange="toggleSelectAll()">
+                        </th>
+                        <th>Job ID</th>
+                        <th>Vehicle</th>
+                        <th>Job Type</th>
+                        <th>Description</th>
+                        <th>Technician</th>
+                        <th>Date Started</th>
+                        <th>Priority</th>
+                        <th>Status</th>
+                        <th>Total Cost</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for job in shop_jobs %}
+                    <tr data-status="{{ job.status }}" data-priority="{{ job.priority }}" data-jobtype="{{ job.job_type }}">
+                        <td>
+                            <input type="checkbox" class="job-checkbox" value="{{ job.job_id }}">
+                        </td>
+                        <td>
+                            <small class="text-muted">{{ job.job_id }}</small>
+                        </td>
+                        <td>
+                            {% if job.truck_number %}
+                                <strong class="text-primary">{{ job.truck_number }}</strong><br>
+                                <small class="text-muted">Truck</small>
+                            {% elif job.trailer_number %}
+                                <strong class="text-info">{{ job.trailer_number }}</strong><br>
+                                <small class="text-muted">Trailer</small>
+                            {% else %}
+                                <span class="text-muted">No vehicle assigned</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="badge bg-secondary">{{ job.job_type }}</span>
+                        </td>
+                        <td>
+                            <div class="job-description" title="{{ job.description }}">
+                                {{ job.description[:50] }}{% if job.description|length > 50 %}...{% endif %}
+                            </div>
+                        </td>
+                        <td>
+                            <strong>{{ job.technician }}</strong>
+                            {% if job.labor_hours %}
+                                <br><small class="text-muted">{{ job.labor_hours }}h</small>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {{ job.date_started }}
+                            {% if job.date_completed %}
+                                <br><small class="text-success">Completed: {{ job.date_completed }}</small>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="badge bg-{{ 'danger' if job.priority == 'Critical' else 'warning' if job.priority == 'High' else 'info' if job.priority == 'Medium' else 'secondary' }}">
+                                {{ job.priority }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="badge bg-{{ 'success' if job.status == 'Completed' else 'warning' if job.status == 'In Progress' else 'info' if job.status == 'Scheduled' else 'secondary' if job.status == 'On Hold' else 'danger' }}">
+                                {{ job.status }}
+                            </span>
+                        </td>
+                        <td>
+                            <strong>${{ "%.2f"|format(job.total_cost) }}</strong>
+                            {% if job.parts_cost > 0 or job.labor_cost > 0 %}
+                                <br>
+                                <small class="text-muted">
+                                    P: ${{ "%.0f"|format(job.parts_cost) }} | L: ${{ "%.0f"|format(job.labor_cost) }}
+                                </small>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="btn-group btn-group-sm" role="group">
+                                <button class="btn btn-outline-info" onclick="viewJobDetails('{{ job.job_id }}')" title="View Details">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button class="btn btn-outline-primary" onclick="editJob('{{ job.job_id }}')" title="Edit Job">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn btn-outline-success" onclick="updateJobStatus('{{ job.job_id }}')" title="Update Status">
+                                    <i class="fas fa-check"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot class="table-light">
+                    <tr>
+                        <td colspan="9" class="text-end"><strong>Total Cost:</strong></td>
+                        <td><strong>${{ "%.2f"|format(shop_jobs|sum(attribute='total_cost')) }}</strong></td>
+                        <td></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+
+        <!-- Bulk Actions -->
+        <div class="mt-3" id="bulkActions" style="display: none;">
+            <div class="card bg-light">
+                <div class="card-body py-2">
+                    <div class="d-flex align-items-center">
+                        <span class="me-3">
+                            <span id="selectedCount">0</span> job(s) selected
+                        </span>
+                        <div class="btn-group btn-group-sm">
+                            <button class="btn btn-outline-success" onclick="bulkUpdateStatus('Completed')">
+                                Mark Completed
+                            </button>
+                            <button class="btn btn-outline-warning" onclick="bulkUpdateStatus('On Hold')">
+                                Put On Hold
+                            </button>
+                            <button class="btn btn-outline-info" onclick="bulkUpdatePriority()">
+                                Update Priority
+                            </button>
+                            <button class="btn btn-outline-danger" onclick="cancelBulkSelection()">
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% else %}
+        <div class="text-center py-4">
+            <i class="fas fa-wrench fa-3x text-muted mb-3"></i>
+            <h5>No shop jobs found</h5>
+            <p class="text-muted">Start by adding your first shop job.</p>
+            <a href="{{ url_for('add_shop_job') }}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Add Shop Job
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Job Details Modal -->
+<div class="modal fade" id="jobDetailsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Shop Job Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="jobDetailsContent">
+                <!-- Content will be loaded dynamically -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="printJobDetails()">
+                    <i class="fas fa-print"></i> Print
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Status Update Modal -->
+<div class="modal fade" id="statusUpdateModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Update Job Status</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="statusUpdateForm">
+                    <input type="hidden" id="updateJobId">
+                    <div class="mb-3">
+                        <label for="newStatus" class="form-label">New Status</label>
+                        <select class="form-select" id="newStatus" required>
+                            <option value="">Select Status</option>
+                            <option value="Scheduled">Scheduled</option>
+                            <option value="In Progress">In Progress</option>
+                            <option value="Completed">Completed</option>
+                            <option value="On Hold">On Hold</option>
+                            <option value="Cancelled">Cancelled</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="statusNotes" class="form-label">Notes</label>
+                        <textarea class="form-control" id="statusNotes" rows="3" placeholder="Add any notes about this status change..."></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="saveStatusUpdate()">
+                    <i class="fas fa-save"></i> Update Status
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.job-description {
+    max-width: 200px;
+    overflow: hidden;
+    cursor: help;
+}
+
+.table td {
+    vertical-align: middle;
+}
+
+.btn-group-sm .btn {
+    padding: 0.25rem 0.5rem;
+}
+
+.card-metric, .card-metric-success, .card-metric-warning, .card-metric-info {
+    transition: transform 0.2s ease-in-out;
+}
+
+.card-metric:hover, .card-metric-success:hover, .card-metric-warning:hover, .card-metric-info:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.table-responsive {
+    border-radius: 0.5rem;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+#bulkActions {
+    border-top: 1px solid #dee2e6;
+    margin-top: 1rem;
+    padding-top: 1rem;
+}
+
+.badge {
+    font-size: 0.75em;
+}
+
+tr.table-warning {
+    background-color: rgba(255, 193, 7, 0.1) !important;
+}
+
+tr.table-danger {
+    background-color: rgba(220, 53, 69, 0.1) !important;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let selectedJobs = [];
+
+function filterJobs() {
+    const statusFilter = document.getElementById('statusFilter').value;
+    const priorityFilter = document.getElementById('priorityFilter').value;
+    const jobTypeFilter = document.getElementById('jobTypeFilter').value;
+    const searchInput = document.getElementById('searchInput').value.toLowerCase();
+
+    const rows = document.querySelectorAll('#shopJobsTable tbody tr');
+
+    rows.forEach(row => {
+        const status = row.getAttribute('data-status');
+        const priority = row.getAttribute('data-priority');
+        const jobType = row.getAttribute('data-jobtype');
+        const text = row.textContent.toLowerCase();
+
+        const statusMatch = !statusFilter || status === statusFilter;
+        const priorityMatch = !priorityFilter || priority === priorityFilter;
+        const jobTypeMatch = !jobTypeFilter || jobType === jobTypeFilter;
+        const searchMatch = !searchInput || text.includes(searchInput);
+
+        if (statusMatch && priorityMatch && jobTypeMatch && searchMatch) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+
+    updateTableHighlighting();
+}
+
+function updateTableHighlighting() {
+    const rows = document.querySelectorAll('#shopJobsTable tbody tr');
+    rows.forEach(row => {
+        const priority = row.getAttribute('data-priority');
+        const status = row.getAttribute('data-status');
+
+        row.classList.remove('table-warning', 'table-danger');
+
+        if (priority === 'Critical' && status !== 'Completed') {
+            row.classList.add('table-danger');
+        } else if (priority === 'High' && status !== 'Completed') {
+            row.classList.add('table-warning');
+        }
+    });
+}
+
+function toggleSelectAll() {
+    const selectAll = document.getElementById('selectAll');
+    const checkboxes = document.querySelectorAll('.job-checkbox');
+
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = selectAll.checked;
+    });
+
+    updateSelectedJobs();
+}
+
+function updateSelectedJobs() {
+    const checkboxes = document.querySelectorAll('.job-checkbox:checked');
+    selectedJobs = Array.from(checkboxes).map(cb => cb.value);
+
+    const bulkActions = document.getElementById('bulkActions');
+    const selectedCount = document.getElementById('selectedCount');
+
+    if (selectedJobs.length > 0) {
+        bulkActions.style.display = 'block';
+        selectedCount.textContent = selectedJobs.length;
+    } else {
+        bulkActions.style.display = 'none';
+    }
+
+    // Update select all checkbox
+    const selectAll = document.getElementById('selectAll');
+    const allCheckboxes = document.querySelectorAll('.job-checkbox');
+    selectAll.checked = selectedJobs.length === allCheckboxes.length;
+    selectAll.indeterminate = selectedJobs.length > 0 && selectedJobs.length < allCheckboxes.length;
+}
+
+function viewJobDetails(jobId) {
+    // In a real implementation, this would fetch job details via AJAX
+    const modal = new bootstrap.Modal(document.getElementById('jobDetailsModal'));
+    document.getElementById('jobDetailsContent').innerHTML = `
+        <div class="text-center">
+            <i class="fas fa-spinner fa-spin fa-2x mb-3"></i>
+            <p>Loading job details for ID: ${jobId}</p>
+        </div>
+    `;
+    modal.show();
+
+    // Simulate loading job details
+    setTimeout(() => {
+        document.getElementById('jobDetailsContent').innerHTML = `
+            <div class="row">
+                <div class="col-md-6">
+                    <h6>Job Information</h6>
+                    <p><strong>Job ID:</strong> ${jobId}</p>
+                    <p><strong>Status:</strong> <span class="badge bg-warning">In Progress</span></p>
+                    <p><strong>Priority:</strong> <span class="badge bg-info">Medium</span></p>
+                    <p><strong>Job Type:</strong> Engine Work</p>
+                </div>
+                <div class="col-md-6">
+                    <h6>Cost Breakdown</h6>
+                    <p><strong>Parts Cost:</strong> $450.00</p>
+                    <p><strong>Labor Cost:</strong> $200.00</p>
+                    <p><strong>Total Cost:</strong> <strong>$650.00</strong></p>
+                </div>
+            </div>
+            <hr>
+            <h6>Description</h6>
+            <p>Replace engine oil filter and perform routine engine maintenance.</p>
+            <h6>Parts Used</h6>
+            <p>Oil filter (P/N: OF-123), Engine oil (5W-30), Air filter</p>
+        `;
+    }, 1000);
+}
+
+function editJob(jobId) {
+    // In a real implementation, this would redirect to edit form
+    alert('Edit job functionality - redirect to edit form for job ID: ' + jobId);
+}
+
+function updateJobStatus(jobId) {
+    document.getElementById('updateJobId').value = jobId;
+    const modal = new bootstrap.Modal(document.getElementById('statusUpdateModal'));
+    modal.show();
+}
+
+function saveStatusUpdate() {
+    const jobId = document.getElementById('updateJobId').value;
+    const newStatus = document.getElementById('newStatus').value;
+    const notes = document.getElementById('statusNotes').value;
+
+    if (!newStatus) {
+        alert('Please select a status');
+        return;
+    }
+
+    // In a real implementation, this would submit via AJAX
+    alert(`Status update for job ${jobId}:\nNew Status: ${newStatus}\nNotes: ${notes}`);
+
+    // Close modal and refresh page
+    bootstrap.Modal.getInstance(document.getElementById('statusUpdateModal')).hide();
+}
+
+function bulkUpdateStatus(status) {
+    if (selectedJobs.length === 0) {
+        alert('No jobs selected');
+        return;
+    }
+
+    const confirmed = confirm(`Are you sure you want to mark ${selectedJobs.length} job(s) as ${status}?`);
+    if (confirmed) {
+        // In a real implementation, this would submit via AJAX
+        alert(`Bulk update: ${selectedJobs.length} jobs marked as ${status}`);
+        location.reload();
+    }
+}
+
+function bulkUpdatePriority() {
+    if (selectedJobs.length === 0) {
+        alert('No jobs selected');
+        return;
+    }
+
+    const priority = prompt('Enter new priority (Low, Medium, High, Critical):');
+    if (priority && ['Low', 'Medium', 'High', 'Critical'].includes(priority)) {
+        alert(`Bulk update: ${selectedJobs.length} jobs priority changed to ${priority}`);
+        location.reload();
+    }
+}
+
+function cancelBulkSelection() {
+    selectedJobs = [];
+    document.querySelectorAll('.job-checkbox').forEach(cb => cb.checked = false);
+    document.getElementById('selectAll').checked = false;
+    updateSelectedJobs();
+}
+
+function printJobDetails() {
+    window.print();
+}
+
+// Initialize page
+document.addEventListener('DOMContentLoaded', function() {
+    // Add event listeners to checkboxes
+    document.querySelectorAll('.job-checkbox').forEach(checkbox => {
+        checkbox.addEventListener('change', updateSelectedJobs);
+    });
+
+    // Initialize table highlighting
+    updateTableHighlighting();
+
+    // Initialize tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[title]'));
+    tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+});
+</script>
+{% endblock %}

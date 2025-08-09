@@ -1,0 +1,234 @@
+<!-- templates/add_shop_job.html -->
+{% extends "base.html" %}
+
+{% block page_title %}Add Shop Job{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0"><i class="fas fa-wrench"></i> Add New Shop Job</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="truck_id" class="form-label">Truck</label>
+                                <select class="form-select" id="truck_id" name="truck_id">
+                                    <option value="">Select Truck (Optional)</option>
+                                    {% for truck in trucks %}
+                                    <option value="{{ truck.truck_id }}">{{ truck.truck_number }} - {{ truck.make }} {{ truck.model }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="trailer_id" class="form-label">Trailer</label>
+                                <select class="form-select" id="trailer_id" name="trailer_id">
+                                    <option value="">Select Trailer (Optional)</option>
+                                    {% for trailer in trailers %}
+                                    <option value="{{ trailer.trailer_id }}">{{ trailer.trailer_number }} - {{ trailer.type }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="job_type" class="form-label">Job Type *</label>
+                                <select class="form-select" id="job_type" name="job_type" required>
+                                    <option value="">Select Job Type</option>
+                                    <option value="Routine Service">Routine Service</option>
+                                    <option value="Repair">Repair</option>
+                                    <option value="Inspection">Inspection</option>
+                                    <option value="Modification">Modification</option>
+                                    <option value="Tire Work">Tire Work</option>
+                                    <option value="Brake Work">Brake Work</option>
+                                    <option value="Engine Work">Engine Work</option>
+                                    <option value="Body Work">Body Work</option>
+                                    <option value="Electrical Work">Electrical Work</option>
+                                    <option value="HVAC Work">HVAC Work</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="priority" class="form-label">Priority *</label>
+                                <select class="form-select" id="priority" name="priority" required>
+                                    <option value="">Select Priority</option>
+                                    <option value="Low">Low</option>
+                                    <option value="Medium" selected>Medium</option>
+                                    <option value="High">High</option>
+                                    <option value="Critical">Critical</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="date_started" class="form-label">Date Started *</label>
+                                <input type="date" class="form-control" id="date_started" name="date_started" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="date_completed" class="form-label">Date Completed</label>
+                                <input type="date" class="form-control" id="date_completed" name="date_completed">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Job Description *</label>
+                        <textarea class="form-control" id="description" name="description" rows="3" required
+                                  placeholder="Describe the work to be performed..."></textarea>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="technician" class="form-label">Technician *</label>
+                                <input type="text" class="form-control" id="technician" name="technician" required
+                                       placeholder="Technician name">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="labor_hours" class="form-label">Labor Hours</label>
+                                <input type="number" class="form-control" id="labor_hours" name="labor_hours"
+                                       step="0.1" min="0" placeholder="0.0">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="parts_used" class="form-label">Parts Used</label>
+                        <textarea class="form-control" id="parts_used" name="parts_used" rows="2"
+                                  placeholder="List parts and part numbers used..."></textarea>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="parts_cost" class="form-label">Parts Cost ($)</label>
+                                <input type="number" class="form-control" id="parts_cost" name="parts_cost"
+                                       step="0.01" min="0" placeholder="0.00">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="labor_cost" class="form-label">Labor Cost ($)</label>
+                                <input type="number" class="form-control" id="labor_cost" name="labor_cost"
+                                       step="0.01" min="0" placeholder="0.00">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="total_cost_display" class="form-label">Total Cost ($)</label>
+                                <input type="text" class="form-control" id="total_cost_display" readonly
+                                       placeholder="0.00" style="background-color: #f8f9fa;">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="status" class="form-label">Status *</label>
+                        <select class="form-select" id="status" name="status" required>
+                            <option value="">Select Status</option>
+                            <option value="Scheduled">Scheduled</option>
+                            <option value="In Progress" selected>In Progress</option>
+                            <option value="Completed">Completed</option>
+                            <option value="On Hold">On Hold</option>
+                            <option value="Cancelled">Cancelled</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="notes" class="form-label">Additional Notes</label>
+                        <textarea class="form-control" id="notes" name="notes" rows="3"
+                                  placeholder="Any additional notes or special instructions..."></textarea>
+                    </div>
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{{ url_for('shop_jobs') }}" class="btn btn-secondary me-md-2">
+                            <i class="fas fa-times"></i> Cancel
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Save Shop Job
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Auto-calculate total cost
+function calculateTotal() {
+    const partsCost = parseFloat(document.getElementById('parts_cost').value) || 0;
+    const laborCost = parseFloat(document.getElementById('labor_cost').value) || 0;
+    const total = partsCost + laborCost;
+    document.getElementById('total_cost_display').value = total.toFixed(2);
+}
+
+// Set today's date as default for date_started
+document.addEventListener('DOMContentLoaded', function() {
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('date_started').value = today;
+
+    // Add event listeners for cost calculation
+    document.getElementById('parts_cost').addEventListener('input', calculateTotal);
+    document.getElementById('labor_cost').addEventListener('input', calculateTotal);
+
+    // Initial calculation
+    calculateTotal();
+
+    // Auto-complete date_completed when status is set to "Completed"
+    document.getElementById('status').addEventListener('change', function() {
+        if (this.value === 'Completed') {
+            const completedDate = document.getElementById('date_completed');
+            if (!completedDate.value) {
+                completedDate.value = today;
+            }
+        }
+    });
+});
+
+// Form validation
+document.querySelector('form').addEventListener('submit', function(e) {
+    const truckId = document.getElementById('truck_id').value;
+    const trailerId = document.getElementById('trailer_id').value;
+
+    if (!truckId && !trailerId) {
+        e.preventDefault();
+        alert('Please select either a truck or trailer for this shop job.');
+        return false;
+    }
+
+    const dateStarted = new Date(document.getElementById('date_started').value);
+    const dateCompleted = document.getElementById('date_completed').value;
+
+    if (dateCompleted) {
+        const completedDate = new Date(dateCompleted);
+        if (completedDate < dateStarted) {
+            e.preventDefault();
+            alert('Date completed cannot be earlier than date started.');
+            return false;
+        }
+    }
+
+    return true;
+});
+</script>
+{% endblock %}

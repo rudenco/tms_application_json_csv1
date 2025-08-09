@@ -1,0 +1,923 @@
+<!-- templates/driver_report.html -->
+{% extends "base.html" %}
+
+{% block page_title %}Driver Report - {{ driver.first_name }} {{ driver.last_name }}{% endblock %}
+
+{% block page_actions %}
+<div class="btn-group" role="group">
+    <a href="{{ url_for('search') }}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Back to Search
+    </a>
+    <button class="btn btn-primary" onclick="printReport()">
+        <i class="fas fa-print"></i> Print Report
+    </button>
+    <button class="btn btn-success" onclick="exportReport()">
+        <i class="fas fa-file-excel"></i> Export
+    </button>
+</div>
+{% endblock %}
+
+{% block content %}
+<!-- Driver Information Header -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-user"></i> Driver Information
+                    </h5>
+                    <div>
+                        <span class="badge bg-light text-dark fs-6 me-2">{{ driver.driver_type }}</span>
+                        <span class="badge bg-{{ 'success' if driver.status == 'Active' else 'warning' if driver.status == 'Inactive' else 'danger' }} fs-6">
+                            {{ driver.status }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="info-item">
+                            <strong><i class="fas fa-user text-primary"></i> Full Name:</strong><br>
+                            <span class="h5 text-primary">{{ driver.first_name }} {{ driver.last_name }}</span>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="info-item">
+                            <strong><i class="fas fa-id-card text-success"></i> License Number:</strong><br>
+                            <span class="badge bg-success fs-6">{{ driver.license_number }}</span>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="info-item">
+                            <strong><i class="fas fa-briefcase text-info"></i> Driver Type:</strong><br>
+                            <span class="badge bg-{{ 'primary' if driver.driver_type == 'CD' else 'success' if driver.driver_type == 'LP' else 'warning' }} fs-6">
+                                {% if driver.driver_type == 'CD' %}
+                                    Company Driver
+                                {% elif driver.driver_type == 'LP' %}
+                                    Lease Purchase
+                                {% elif driver.driver_type == 'LP Owner' %}
+                                    LP Owner
+                                {% else %}
+                                    {{ driver.driver_type }}
+                                {% endif %}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="info-item">
+                            <strong><i class="fas fa-calendar-alt text-warning"></i> Hire Date:</strong><br>
+                            {{ driver.hire_date }}
+                            <br><small class="text-muted">Service tenure</small>
+                        </div>
+                    </div>
+                </div>
+                <hr>
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="info-item">
+                            <strong><i class="fas fa-phone text-info"></i> Contact:</strong><br>
+                            {% if driver.phone %}
+                                <a href="tel:{{ driver.phone }}" class="text-decoration-none">{{ driver.phone }}</a>
+                            {% else %}
+                                <span class="text-muted">Not provided</span>
+                            {% endif %}
+                            {% if driver.email %}
+                                <br><a href="mailto:{{ driver.email }}" class="text-decoration-none">{{ driver.email }}</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="info-item">
+                            <strong><i class="fas fa-certificate text-warning"></i> CDL Expiry:</strong><br>
+                            {% if driver.cdl_expiry %}
+                                <span class="{% if driver.cdl_expiry < '2025-06-01' %}text-danger{% elif driver.cdl_expiry < '2025-12-01' %}text-warning{% else %}text-success{% endif %}">
+                                    {{ driver.cdl_expiry }}
+                                </span>
+                            {% else %}
+                                <span class="text-muted">Not specified</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="info-item">
+                            <strong><i class="fas fa-heartbeat text-danger"></i> Medical Expiry:</strong><br>
+                            {% if driver.medical_expiry %}
+                                <span class="{% if driver.medical_expiry < '2025-06-01' %}text-danger{% elif driver.medical_expiry < '2025-12-01' %}text-warning{% else %}text-success{% endif %}">
+                                    {{ driver.medical_expiry }}
+                                </span>
+                            {% else %}
+                                <span class="text-muted">Not specified</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                {% if driver.address %}
+                <div class="row mt-3">
+                    <div class="col-md-8">
+                        <div class="info-item">
+                            <strong><i class="fas fa-map-marker-alt text-secondary"></i> Address:</strong><br>
+                            <div class="text-muted">{{ driver.address }}</div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if driver.notes %}
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <div class="info-item">
+                            <strong><i class="fas fa-sticky-note text-secondary"></i> Notes:</strong><br>
+                            <div class="text-muted">{{ driver.notes }}</div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Assigned Vehicle Information -->
+{% if truck %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h5 class="card-title mb-0"><i class="fas fa-truck"></i> Assigned Vehicle</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="info-item">
+                            <strong><i class="fas fa-hashtag text-primary"></i> Truck Number:</strong><br>
+                            <span class="h6 text-primary">{{ truck.truck_number }}</span>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="info-item">
+                            <strong><i class="fas fa-industry text-success"></i> Make/Model:</strong><br>
+                            {{ truck.make }} {{ truck.model }}
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="info-item">
+                            <strong><i class="fas fa-calendar text-info"></i> Year:</strong><br>
+                            {{ truck.year }}
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="info-item">
+                            <strong><i class="fas fa-tachometer-alt text-warning"></i> Mileage:</strong><br>
+                            {{ "{:,}".format(truck.mileage|int) }} miles
+                        </div>
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-md-6">
+                        <div class="info-item">
+                            <strong><i class="fas fa-cog text-secondary"></i> Engine Type:</strong><br>
+                            {{ truck.engine_type or 'Not specified' }}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="info-item">
+                            <strong><i class="fas fa-circle text-{{ 'success' if truck.status == 'Active' else 'warning' if truck.status == 'Maintenance' else 'secondary' }}"></i> Status:</strong><br>
+                            <span class="badge bg-{{ 'success' if truck.status == 'Active' else 'warning' if truck.status == 'Maintenance' else 'secondary' }}">
+                                {{ truck.status }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <a href="{{ url_for('truck_report', truck_id=truck.truck_id) }}" class="btn btn-outline-primary btn-sm">
+                        <i class="fas fa-eye"></i> View Truck Report
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Performance Metrics -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card card-metric-warning h-100">
+            <div class="card-body text-center">
+                <i class="fas fa-exclamation-triangle fa-2x mb-2 opacity-75"></i>
+                <h5 class="mb-1">OTR Cases</h5>
+                <h3 class="text-white">{{ totals.otr_cases }}</h3>
+                <small>Road incidents</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card card-metric h-100">
+            <div class="card-body text-center">
+                <i class="fas fa-dollar-sign fa-2x mb-2 opacity-75"></i>
+                <h5 class="mb-1">OTR Cost</h5>
+                <h3 class="text-white">${{ "{:,.0f}".format(totals.otr_cost) }}</h3>
+                <small>Total repair costs</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card card-metric-info h-100">
+            <div class="card-body text-center">
+                <i class="fas fa-clock fa-2x mb-2 opacity-75"></i>
+                <h5 class="mb-1">Downtime</h5>
+                <h3 class="text-white">{{ "{:.1f}".format(totals.downtime_hours) }}</h3>
+                <small>Hours lost</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card card-metric-success h-100">
+            <div class="card-body text-center">
+                <i class="fas fa-chart-line fa-2x mb-2 opacity-75"></i>
+                <h5 class="mb-1">Safety Score</h5>
+                <h3 class="text-white">
+                    {% if totals.otr_cases == 0 %}
+                        100
+                    {% elif totals.otr_cases <= 2 %}
+                        {{ 100 - (totals.otr_cases * 10) }}
+                    {% else %}
+                        {{ 100 - (totals.otr_cases * 15) }}
+                    {% endif %}
+                </h3>
+                <small>Performance rating</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Certification Status -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-light">
+                <h5 class="card-title mb-0"><i class="fas fa-certificate text-warning"></i> Certification Status</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="certification-item">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-1"><i class="fas fa-id-card text-primary"></i> Commercial Driver's License</h6>
+                                    {% if driver.cdl_expiry %}
+                                        <p class="mb-1">Expires: {{ driver.cdl_expiry }}</p>
+                                        {% if driver.cdl_expiry < '2025-04-01' %}
+                                            <span class="badge bg-danger">Expiring Soon</span>
+                                        {% elif driver.cdl_expiry < '2025-07-01' %}
+                                            <span class="badge bg-warning">Renewal Required</span>
+                                        {% else %}
+                                            <span class="badge bg-success">Valid</span>
+                                        {% endif %}
+                                    {% else %}
+                                        <p class="text-muted">Expiry date not specified</p>
+                                    {% endif %}
+                                </div>
+                                <div class="certification-status">
+                                    {% if driver.cdl_expiry and driver.cdl_expiry > '2025-01-15' %}
+                                        <i class="fas fa-check-circle fa-2x text-success"></i>
+                                    {% else %}
+                                        <i class="fas fa-exclamation-circle fa-2x text-warning"></i>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="certification-item">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-1"><i class="fas fa-heartbeat text-danger"></i> DOT Medical Certificate</h6>
+                                    {% if driver.medical_expiry %}
+                                        <p class="mb-1">Expires: {{ driver.medical_expiry }}</p>
+                                        {% if driver.medical_expiry < '2025-04-01' %}
+                                            <span class="badge bg-danger">Expiring Soon</span>
+                                        {% elif driver.medical_expiry < '2025-07-01' %}
+                                            <span class="badge bg-warning">Renewal Required</span>
+                                        {% else %}
+                                            <span class="badge bg-success">Valid</span>
+                                        {% endif %}
+                                    {% else %}
+                                        <p class="text-muted">Expiry date not specified</p>
+                                    {% endif %}
+                                </div>
+                                <div class="certification-status">
+                                    {% if driver.medical_expiry and driver.medical_expiry > '2025-01-15' %}
+                                        <i class="fas fa-check-circle fa-2x text-success"></i>
+                                    {% else %}
+                                        <i class="fas fa-exclamation-circle fa-2x text-warning"></i>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- OTR Incidents and Activity -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <ul class="nav nav-tabs card-header-tabs" id="reportTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="otr-tab" data-bs-toggle="tab" data-bs-target="#otr-incidents" type="button">
+                            <i class="fas fa-exclamation-triangle"></i> OTR Incidents ({{ otr_repairs|length }})
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="performance-tab" data-bs-toggle="tab" data-bs-target="#performance" type="button">
+                            <i class="fas fa-chart-bar"></i> Performance Analysis
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="timeline-tab" data-bs-toggle="tab" data-bs-target="#timeline" type="button">
+                            <i class="fas fa-timeline"></i> Activity Timeline
+                        </button>
+                    </li>
+                </ul>
+            </div>
+            <div class="card-body">
+                <div class="tab-content" id="reportTabsContent">
+                    <!-- OTR Incidents Tab -->
+                    <div class="tab-pane fade show active" id="otr-incidents" role="tabpanel">
+                        {% if otr_repairs %}
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th><i class="fas fa-calendar"></i> Date</th>
+                                        <th><i class="fas fa-map-marker-alt"></i> Location</th>
+                                        <th><i class="fas fa-exclamation-circle"></i> Issue</th>
+                                        <th><i class="fas fa-store"></i> Repair Shop</th>
+                                        <th><i class="fas fa-clock"></i> Downtime</th>
+                                        <th><i class="fas fa-dollar-sign"></i> Total Cost</th>
+                                        <th><i class="fas fa-flag"></i> Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for repair in otr_repairs %}
+                                    <tr>
+                                        <td>{{ repair.breakdown_date }}</td>
+                                        <td>
+                                            <strong>{{ repair.location }}</strong>
+                                        </td>
+                                        <td>
+                                            <div class="issue-description" title="{{ repair.issue_description }}">
+                                                {{ repair.issue_description[:50] }}{% if repair.issue_description|length > 50 %}...{% endif %}
+                                            </div>
+                                        </td>
+                                        <td>{{ repair.repair_shop }}</td>
+                                        <td>
+                                            <span class="badge bg-warning">{{ repair.downtime_hours }}h</span>
+                                        </td>
+                                        <td>
+                                            <strong>${{ "{:.2f}".format(repair.total_cost) }}</strong>
+                                            {% if repair.repair_cost > 0 %}
+                                                <br><small class="text-muted">
+                                                    Repair: ${{ "{:.0f}".format(repair.repair_cost) }}
+                                                    {% if repair.tow_cost > 0 %} | Tow: ${{ "{:.0f}".format(repair.tow_cost) }}{% endif %}
+                                                    {% if repair.hotel_cost > 0 %} | Hotel: ${{ "{:.0f}".format(repair.hotel_cost) }}{% endif %}
+                                                </small>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-{{ 'success' if repair.status == 'Completed' else 'warning' if repair.status == 'In Progress' else 'danger' if repair.status == 'Open' else 'secondary' }}">
+                                                {{ repair.status }}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                                <tfoot class="table-light">
+                                    <tr>
+                                        <td colspan="4" class="text-end"><strong>Totals:</strong></td>
+                                        <td><strong>{{ "{:.1f}".format(totals.downtime_hours) }}h</strong></td>
+                                        <td><strong>${{ "{:,.2f}".format(totals.otr_cost) }}</strong></td>
+                                        <td></td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                        {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                            <h6>No OTR Incidents</h6>
+                            <p class="text-muted">This driver has no recorded on-the-road incidents. Excellent safety record!</p>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Performance Analysis Tab -->
+                    <div class="tab-pane fade" id="performance" role="tabpanel">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6><i class="fas fa-chart-pie text-primary"></i> Performance Metrics</h6>
+                                <div class="performance-metrics">
+                                    <div class="metric-item d-flex justify-content-between align-items-center mb-3">
+                                        <span><i class="fas fa-shield-alt text-success"></i> Safety Score</span>
+                                        <div>
+                                            {% set safety_score = 100 - (totals.otr_cases * 15) if totals.otr_cases > 0 else 100 %}
+                                            <span class="h5 text-{{ 'success' if safety_score >= 85 else 'warning' if safety_score >= 70 else 'danger' }}">
+                                                {{ safety_score }}%
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="progress mb-3" style="height: 8px;">
+                                        <div class="progress-bar bg-{{ 'success' if safety_score >= 85 else 'warning' if safety_score >= 70 else 'danger' }}"
+                                             style="width: {{ safety_score }}%"></div>
+                                    </div>
+
+                                    <div class="metric-item d-flex justify-content-between align-items-center mb-3">
+                                        <span><i class="fas fa-clock text-info"></i> Average Downtime per Incident</span>
+                                        <div>
+                                            <span class="h6">
+                                                {% if totals.otr_cases > 0 %}
+                                                    {{ "{:.1f}".format(totals.downtime_hours / totals.otr_cases) }}h
+                                                {% else %}
+                                                    0h
+                                                {% endif %}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <div class="metric-item d-flex justify-content-between align-items-center mb-3">
+                                        <span><i class="fas fa-dollar-sign text-warning"></i> Average Cost per Incident</span>
+                                        <div>
+                                            <span class="h6">
+                                                {% if totals.otr_cases > 0 %}
+                                                    ${{ "{:,.0f}".format(totals.otr_cost / totals.otr_cases) }}
+                                                {% else %}
+                                                    $0
+                                                {% endif %}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <h6 class="mt-4"><i class="fas fa-award text-warning"></i> Recognition</h6>
+                                <div class="recognition-badges">
+                                    {% if totals.otr_cases == 0 %}
+                                        <span class="badge bg-success me-2 mb-2"><i class="fas fa-star"></i> Zero Incidents</span>
+                                    {% endif %}
+                                    {% if driver.hire_date and driver.hire_date < '2023-01-01' %}
+                                        <span class="badge bg-primary me-2 mb-2"><i class="fas fa-clock"></i> Senior Driver</span>
+                                    {% endif %}
+                                    {% if driver.driver_type == 'LP Owner' %}
+                                        <span class="badge bg-warning me-2 mb-2"><i class="fas fa-crown"></i> Owner Operator</span>
+                                    {% endif %}
+                                    {% if totals.downtime_hours < 5 %}
+                                        <span class="badge bg-info me-2 mb-2"><i class="fas fa-tachometer-alt"></i> Minimal Downtime</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <h6><i class="fas fa-info-circle text-secondary"></i> Driver Summary</h6>
+                                <div class="table-responsive">
+                                    <table class="table table-sm">
+                                        <tr>
+                                            <td><strong>Full Name:</strong></td>
+                                            <td>{{ driver.first_name }} {{ driver.last_name }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>License:</strong></td>
+                                            <td>{{ driver.license_number }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Driver Type:</strong></td>
+                                            <td>
+                                                <span class="badge bg-{{ 'primary' if driver.driver_type == 'CD' else 'success' if driver.driver_type == 'LP' else 'warning' }}">
+                                                    {{ driver.driver_type }}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Status:</strong></td>
+                                            <td>
+                                                <span class="badge bg-{{ 'success' if driver.status == 'Active' else 'warning' }}">
+                                                    {{ driver.status }}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Hire Date:</strong></td>
+                                            <td>{{ driver.hire_date }}</td>
+                                        </tr>
+                                        {% if truck %}
+                                        <tr>
+                                            <td><strong>Assigned Truck:</strong></td>
+                                            <td>{{ truck.truck_number }}</td>
+                                        </tr>
+                                        {% endif %}
+                                    </table>
+                                </div>
+
+                                {% if totals.otr_cases > 0 %}
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle"></i>
+                                    <strong>Performance Summary:</strong><br>
+                                    {{ totals.otr_cases }} incident{{ 's' if totals.otr_cases != 1 else '' }}
+                                    resulting in {{ "{:.1f}".format(totals.downtime_hours) }} hours downtime
+                                    and ${{ "{:,.0f}".format(totals.otr_cost) }} in costs.
+                                </div>
+                                {% else %}
+                                <div class="alert alert-success">
+                                    <i class="fas fa-trophy"></i>
+                                    <strong>Excellent Record:</strong><br>
+                                    No OTR incidents recorded. Outstanding safety performance!
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Activity Timeline Tab -->
+                    <div class="tab-pane fade" id="timeline" role="tabpanel">
+                        <div class="timeline">
+                            <!-- Driver hire event -->
+                            <div class="timeline-item">
+                                <div class="timeline-marker">
+                                    <i class="fas fa-user-plus text-primary"></i>
+                                </div>
+                                <div class="timeline-content">
+                                    <div class="timeline-header">
+                                        <h6 class="mb-1">Driver Hired</h6>
+                                        <small class="text-muted">{{ driver.hire_date }}</small>
+                                    </div>
+                                    <div class="timeline-body">
+                                        <p class="mb-1">{{ driver.first_name }} {{ driver.last_name }} joined as {{ driver.driver_type }}</p>
+                                        <span class="badge bg-primary">{{ driver.driver_type }}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- OTR incidents -->
+                            {% for repair in otr_repairs|sort(attribute='breakdown_date', reverse=true) %}
+                            <div class="timeline-item">
+                                <div class="timeline-marker">
+                                    <i class="fas fa-exclamation-triangle text-warning"></i>
+                                </div>
+                                <div class="timeline-content">
+                                    <div class="timeline-header">
+                                        <h6 class="mb-1">OTR Incident</h6>
+                                        <small class="text-muted">{{ repair.breakdown_date }}</small>
+                                    </div>
+                                    <div class="timeline-body">
+                                        <p class="mb-1">{{ repair.issue_description }}</p>
+                                        <span class="badge bg-warning">{{ repair.location }}</span>
+                                        <span class="badge bg-info">{{ repair.repair_shop }}</span>
+                                        <span class="badge bg-danger">${{ "{:.0f}".format(repair.total_cost) }}</span>
+                                        {% if repair.downtime_hours > 0 %}
+                                            <span class="badge bg-secondary">{{ repair.downtime_hours }}h downtime</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+
+                            <!-- Certification renewals -->
+                            {% if driver.cdl_expiry %}
+                            <div class="timeline-item">
+                                <div class="timeline-marker">
+                                    <i class="fas fa-certificate text-success"></i>
+                                </div>
+                                <div class="timeline-content">
+                                    <div class="timeline-header">
+                                        <h6 class="mb-1">CDL Renewal Due</h6>
+                                        <small class="text-muted">{{ driver.cdl_expiry }}</small>
+                                    </div>
+                                    <div class="timeline-body">
+                                        <p class="mb-1">Commercial Driver's License renewal required</p>
+                                        <span class="badge bg-warning">CDL Renewal</span>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            {% if driver.medical_expiry %}
+                            <div class="timeline-item">
+                                <div class="timeline-marker">
+                                    <i class="fas fa-heartbeat text-danger"></i>
+                                </div>
+                                <div class="timeline-content">
+                                    <div class="timeline-header">
+                                        <h6 class="mb-1">Medical Certificate Due</h6>
+                                        <small class="text-muted">{{ driver.medical_expiry }}</small>
+                                    </div>
+                                    <div class="timeline-body">
+                                        <p class="mb-1">DOT Medical Certificate renewal required</p>
+                                        <span class="badge bg-danger">Medical Renewal</span>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            {% if not otr_repairs and not driver.cdl_expiry and not driver.medical_expiry %}
+                            <div class="text-center py-4">
+                                <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
+                                <h6>No Timeline Events</h6>
+                                <p class="text-muted">No significant events recorded in the driver's timeline.</p>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.info-item {
+    margin-bottom: 1rem;
+}
+
+.card-metric, .card-metric-success, .card-metric-info, .card-metric-warning {
+    transition: transform 0.2s ease-in-out;
+}
+
+.card-metric:hover, .card-metric-success:hover, .card-metric-info:hover, .card-metric-warning:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.certification-item {
+    padding: 1rem;
+    border: 1px solid #dee2e6;
+    border-radius: 0.5rem;
+    margin-bottom: 1rem;
+    background-color: #f8f9fa;
+}
+
+.certification-status {
+    text-align: center;
+}
+
+.timeline {
+    position: relative;
+    padding-left: 30px;
+}
+
+.timeline::before {
+    content: '';
+    position: absolute;
+    left: 10px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #dee2e6;
+}
+
+.timeline-item {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.timeline-marker {
+    position: absolute;
+    left: -25px;
+    top: 0;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: white;
+    border: 2px solid #dee2e6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+}
+
+.timeline-content {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 15px;
+    border-left: 4px solid #007bff;
+}
+
+.timeline-header {
+    margin-bottom: 10px;
+}
+
+.performance-metrics .metric-item {
+    padding: 10px 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.performance-metrics .metric-item:last-child {
+    border-bottom: none;
+}
+
+.recognition-badges .badge {
+    font-size: 0.85em;
+    padding: 0.5rem 0.75rem;
+}
+
+.issue-description {
+    cursor: help;
+    max-width: 200px;
+}
+
+.table th {
+    border-top: none;
+    font-weight: 600;
+    font-size: 0.875rem;
+}
+
+.progress {
+    height: 8px;
+    border-radius: 4px;
+}
+
+.badge {
+    font-size: 0.75em;
+}
+
+.opacity-75 {
+    opacity: 0.75;
+}
+
+/* Certification status colors */
+.text-danger { color: #dc3545 !important; }
+.text-warning { color: #ffc107 !important; }
+.text-success { color: #28a745 !important; }
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .timeline {
+        padding-left: 20px;
+    }
+
+    .timeline-marker {
+        left: -15px;
+        width: 15px;
+        height: 15px;
+        font-size: 8px;
+    }
+
+    .info-item {
+        margin-bottom: 0.75rem;
+    }
+}
+
+@media print {
+    .btn-group, .card-header .nav-tabs {
+        display: none !important;
+    }
+
+    .card {
+        border: 1px solid #ddd !important;
+        box-shadow: none !important;
+    }
+
+    .timeline::before {
+        background: #000 !important;
+    }
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function printReport() {
+    window.print();
+}
+
+function exportReport() {
+    // In a real implementation, this would generate an Excel file
+    alert('Export functionality would generate an Excel report with all driver data and performance metrics');
+}
+
+// Initialize tooltips and enhance functionality
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[title]'));
+    tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+
+    // Add smooth scrolling to tab changes
+    document.querySelectorAll('[data-bs-toggle="tab"]').forEach(function(tab) {
+        tab.addEventListener('shown.bs.tab', function(e) {
+            document.querySelector('.card-body').scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+            });
+        });
+    });
+
+    // Highlight expiring certifications
+    highlightExpiringCertifications();
+
+    // Add performance score color coding
+    updatePerformanceScores();
+});
+
+function highlightExpiringCertifications() {
+    const today = new Date();
+    const certificationElements = document.querySelectorAll('.certification-item');
+
+    certificationElements.forEach(function(element) {
+        const dateText = element.querySelector('p').textContent;
+        const expiryMatch = dateText.match(/Expires: (\d{4}-\d{2}-\d{2})/);
+
+        if (expiryMatch) {
+            const expiryDate = new Date(expiryMatch[1]);
+            const daysUntilExpiry = Math.ceil((expiryDate - today) / (1000 * 60 * 60 * 24));
+
+            if (daysUntilExpiry < 0) {
+                element.style.borderLeftColor = '#dc3545';
+                element.style.backgroundColor = '#f8d7da';
+            } else if (daysUntilExpiry < 30) {
+                element.style.borderLeftColor = '#ffc107';
+                element.style.backgroundColor = '#fff3cd';
+            } else if (daysUntilExpiry < 90) {
+                element.style.borderLeftColor = '#17a2b8';
+                element.style.backgroundColor = '#d1ecf1';
+            }
+        }
+    });
+}
+
+function updatePerformanceScores() {
+    const safetyScoreElement = document.querySelector('.performance-metrics .h5');
+    if (safetyScoreElement) {
+        const score = parseInt(safetyScoreElement.textContent);
+        const progressBar = document.querySelector('.progress-bar');
+
+        if (progressBar) {
+            // Animate progress bar
+            setTimeout(() => {
+                progressBar.style.transition = 'width 1.5s ease-in-out';
+                progressBar.style.width = score + '%';
+            }, 500);
+        }
+    }
+}
+
+// Add click handlers for interactive elements
+document.addEventListener('click', function(e) {
+    // Handle certification renewal reminders
+    if (e.target.closest('.certification-item')) {
+        const certItem = e.target.closest('.certification-item');
+        const expiryBadge = certItem.querySelector('.badge');
+
+        if (expiryBadge && (expiryBadge.classList.contains('bg-warning') || expiryBadge.classList.contains('bg-danger'))) {
+            const daysText = expiryBadge.textContent;
+            if (daysText.includes('days')) {
+                // Could integrate with calendar or reminder system
+                console.log('Certification renewal reminder:', daysText);
+            }
+        }
+    }
+});
+
+// Add data export functionality
+function generatePerformanceReport() {
+    const driverName = document.querySelector('.h5.text-primary').textContent;
+    const safetyScore = document.querySelector('.performance-metrics .h5').textContent;
+    const otrCases = document.querySelector('.card-metric-warning .h3').textContent;
+    const totalCost = document.querySelector('.card-metric .h3').textContent;
+
+    const reportData = {
+        driver: driverName,
+        safetyScore: safetyScore,
+        otrCases: otrCases,
+        totalCost: totalCost,
+        generatedAt: new Date().toISOString()
+    };
+
+    console.log('Performance Report Data:', reportData);
+    return reportData;
+}
+
+// Keyboard shortcuts
+document.addEventListener('keydown', function(e) {
+    // Ctrl+P for print
+    if (e.ctrlKey && e.key === 'p') {
+        e.preventDefault();
+        printReport();
+    }
+
+    // Ctrl+E for export
+    if (e.ctrlKey && e.key === 'e') {
+        e.preventDefault();
+        exportReport();
+    }
+});
+</script>
+{% endblock %}
